@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 
-const operators = [".", "+", "-", "*", "/"];
+const operators = [".", "-", "+", "*", "/"];
 
 class App extends React.Component {
   state = {
@@ -26,6 +26,7 @@ class App extends React.Component {
     //HANDLE THE NUMBERS
     if (!isNaN(e.target.innerText)) {
       let num = e.target.innerText;
+      this.handleZero();
       this.handleNumber(num);
 
       //HANDLE THE OPERATORS
@@ -49,8 +50,15 @@ class App extends React.Component {
         isMaxed: false,
         inputArr: [],
       },
-      () => (document.querySelector("#decimal").disabled = false)
+      () => this.resetDisabled()
     );
+  };
+
+  resetDisabled = () => {
+    document.querySelector("#add").disabled = false;
+    document.querySelector("#multiply").disabled = false;
+    document.querySelector("#divide").disabled = false;
+    document.querySelector("#decimal").disabled = false;
   };
 
   clearInput = () => {
@@ -67,11 +75,11 @@ class App extends React.Component {
   }
 
   handleZero = () => {
-    const { input, output } = this.state;
-    if (input === "0") {
-      this.setState((prevState) => ({
-        output: prevState.output,
-      }));
+    const { input, output, inputArr } = this.state;
+    if (input === "0" && inputArr[inputArr.length - 1] === "0") {
+      console.error("ZERO TROUBLES");
+      // this.setState({ input: "", output: "" });
+      this.handleClear();
     }
   };
 
@@ -83,8 +91,8 @@ class App extends React.Component {
     }
   };
 
-  handleOperator(operator) {
-    const { input, output, inputArr } = this.state;
+  handleOperator = (operator) => {
+    const { input, output, inputArr, started } = this.state;
     if (
       operators.includes(inputArr[inputArr.length - 1]) &&
       operators.includes(input)
@@ -93,12 +101,17 @@ class App extends React.Component {
       this.setState({ output, input });
       return;
     }
+    if (!started) {
+      document.querySelector("#add").disabled = true;
+      document.querySelector("#multiply").disabled = true;
+      document.querySelector("#divide").disabled = true;
+    }
     this.setState((prevState) => ({
       input: operator,
       output: prevState.output.concat(operator),
       started: true,
     }));
-  }
+  };
 
   handleMax = () => {
     this.setState({ input: "DIGIT MAX", output: "", isMaxed: true });
@@ -114,6 +127,7 @@ class App extends React.Component {
     console.log("INPUT:", input);
     console.log("OUTPUT:", output);
     console.log("LASTCLICKED:", inputArr[inputArr.length - 1]);
+    console.log(inputArr.length);
     return (
       <div id="wrapper">
         <Display input={input} output={output} started={started} />
