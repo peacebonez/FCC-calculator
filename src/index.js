@@ -2,30 +2,31 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 
+const operators = [".", "+", "-", "*", "/"];
+
 class App extends React.Component {
   state = {
     input: "",
     output: "",
     started: false,
     isMaxed: false,
-    lastClicked: "",
+    inputArr: [],
   };
 
   handleClick = (e) => {
-    const { input, output, isMaxed, lastClicked } = this.state;
-    const operators = [".", "=", "+", "-", "*", "/"];
+    const { input, output, isMaxed } = this.state;
     if (e.target.innerText === "AC") {
       this.handleClear();
     }
     if (isMaxed) return;
 
     // clears the input once user enters a number after an operator
+    this.handleDecimal(e.target.innerText);
     if (operators.includes(input)) this.clearInput();
-
     //HANDLE THE NUMBERS
-
     if (!isNaN(e.target.innerText)) {
-      this.handleNumber(e);
+      let num = e.target.innerText;
+      this.handleNumber(num);
 
       //HANDLE THE OPERATORS
     } else if (operators.includes(e.target.innerText)) {
@@ -40,21 +41,55 @@ class App extends React.Component {
   };
 
   handleClear = () => {
-    this.setState({ started: false, input: "", output: "", isMaxed: false });
+    this.setState(
+      {
+        started: false,
+        input: "",
+        output: "",
+        isMaxed: false,
+        inputArr: [],
+      },
+      () => (document.querySelector("#decimal").disabled = false)
+    );
   };
 
   clearInput = () => {
     this.setState({ input: "" });
   };
 
-  isNumberValid = (num) => {
-    //use Regex, return bool
+  handleNumber(num) {
+    const { input } = this.state;
+    this.setState((prevState) => ({
+      input: prevState.input.concat(num),
+      output: prevState.output.concat(num),
+      started: true,
+    }));
+  }
+
+  handleZero = () => {
+    const { input, output } = this.state;
+    if (input === "0") {
+      this.setState((prevState) => ({
+        output: prevState.output,
+      }));
+    }
+  };
+
+  handleDecimal = (num) => {
+    this.state.inputArr.push(num);
+    console.log(this.state.inputArr);
+    if (this.state.inputArr.includes(".")) {
+      document.querySelector("#decimal").disabled = true;
+    }
   };
 
   handleOperator(operator) {
-    const { input, output, lastClicked } = this.state;
-    if (input.includes("+") && lastClicked === "+") {
-      console.log("double");
+    const { input, output, inputArr } = this.state;
+    if (
+      operators.includes(inputArr[inputArr.length - 1]) &&
+      operators.includes(input)
+    ) {
+      console.error("double");
       this.setState({ output, input });
       return;
     }
@@ -62,19 +97,6 @@ class App extends React.Component {
       input: operator,
       output: prevState.output.concat(operator),
       started: true,
-      lastClicked: operator,
-    }));
-  }
-
-  handleOperatorFormat = () => {};
-
-  handleNumber(e) {
-    let num = e.target.innerText;
-    this.setState((prevState) => ({
-      input: prevState.input.concat(num),
-      output: prevState.output.concat(num),
-      started: true,
-      lastClicked: num,
     }));
   }
 
@@ -83,11 +105,15 @@ class App extends React.Component {
   };
 
   //when pressing equal
-  handleEvaluation = () => {};
+  handleEvaluation = () => {
+    this.setState({ input: eval(this.state.output), output: "" });
+  };
 
   render() {
-    const { input, output, started } = this.state;
-    console.log(input);
+    const { input, output, started, inputArr } = this.state;
+    console.log("INPUT:", input);
+    console.log("OUTPUT:", output);
+    console.log("LASTCLICKED:", inputArr[inputArr.length - 1]);
     return (
       <div id="wrapper">
         <Display input={input} output={output} started={started} />
