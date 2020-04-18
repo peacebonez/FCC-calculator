@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 
-const operators = [".", "-", "+", "*", "/"];
+const operators = ["-", "+", "*", "/"];
 
 class App extends React.Component {
   state = {
@@ -14,24 +14,46 @@ class App extends React.Component {
   };
 
   handleClick = (e) => {
-    const { input, output, isMaxed } = this.state;
-    if (e.target.innerText === "AC") {
+    const { input, output, isMaxed, inputArr } = this.state;
+    let button = e.target.innerText;
+    inputArr.push(button);
+    console.log("INPUTARR:", inputArr);
+    console.log("LASTCLICKED:", inputArr[inputArr.length - 1]);
+    if (button === "AC") {
       this.handleClear();
     }
     if (isMaxed) return;
+    if (button === "=") this.handleEvaluation();
 
     // clears the input once user enters a number after an operator
-    this.handleDecimal(e.target.innerText);
+    if (button === ".") this.handleDecimal(button);
     if (operators.includes(input)) this.clearInput();
+    console.log("BUTTON PRESSED", button);
+    if (operators.includes(inputArr[inputArr.length - 1]) && button === ".") {
+      console.error("Need a zero here boss!");
+    }
+
     //HANDLE THE NUMBERS
-    if (!isNaN(e.target.innerText)) {
-      let num = e.target.innerText;
-      this.handleZero();
+    if (!isNaN(button)) {
+      let num = button;
+      console.log("inputArr", inputArr);
+      console.log(num);
+      if (output === "0") {
+        this.handleClear();
+      }
+      if (inputArr.includes("=")) {
+        this.handleClear();
+      }
       this.handleNumber(num);
 
       //HANDLE THE OPERATORS
     } else if (operators.includes(e.target.innerText)) {
-      let operator = e.target.innerText;
+      let operator = button;
+      if (inputArr.includes("=")) {
+        this.setState((prevState) => ({
+          output: prevState.input + input,
+        }));
+      }
       this.handleOperator(operator);
     }
 
@@ -66,33 +88,45 @@ class App extends React.Component {
   };
 
   handleNumber(num) {
-    const { input } = this.state;
+    const { input, output } = this.state;
     this.setState((prevState) => ({
-      input: prevState.input.concat(num),
-      output: prevState.output.concat(num),
+      input: prevState.input + num,
+      output: prevState.output + num,
       started: true,
     }));
   }
 
   handleZero = () => {
     const { input, output, inputArr } = this.state;
-    if (input === "0" && inputArr[inputArr.length - 1] === "0") {
+    if (inputArr === ["0"]) {
       console.error("ZERO TROUBLES");
-      // this.setState({ input: "", output: "" });
-      this.handleClear();
+      return this.handleClear();
     }
   };
 
   handleDecimal = (num) => {
-    this.state.inputArr.push(num);
-    console.log(this.state.inputArr);
-    if (this.state.inputArr.includes(".")) {
+    const { input, inputArr } = this.state;
+
+    if (operators.includes(inputArr[inputArr.length - 1])) {
+      console.error("Decimal follows an operator!");
+    }
+
+    if (inputArr.includes(".")) {
       document.querySelector("#decimal").disabled = true;
     }
+    if (inputArr.length === 1) {
+      num = "0" + num;
+    }
+    this.setState((prevState) => ({
+      input: prevState.input.concat(num),
+      output: prevState.output.concat(num),
+      started: true,
+    }));
   };
 
   handleOperator = (operator) => {
     const { input, output, inputArr, started } = this.state;
+
     if (
       operators.includes(inputArr[inputArr.length - 1]) &&
       operators.includes(input)
@@ -106,11 +140,15 @@ class App extends React.Component {
       document.querySelector("#multiply").disabled = true;
       document.querySelector("#divide").disabled = true;
     }
-    this.setState((prevState) => ({
-      input: operator,
-      output: prevState.output.concat(operator),
-      started: true,
-    }));
+    this.setState(
+      (prevState) => ({
+        input: operator,
+        output: prevState.output + operator,
+        inputArr: [],
+        started: true,
+      }),
+      () => this.resetDisabled()
+    );
   };
 
   handleMax = () => {
@@ -119,15 +157,18 @@ class App extends React.Component {
 
   //when pressing equal
   handleEvaluation = () => {
-    this.setState({ input: eval(this.state.output), output: "" });
+    let evaluation = eval(this.state.output);
+    this.setState({
+      input: evaluation,
+      output: this.state.output + "=" + evaluation,
+    });
   };
 
   render() {
     const { input, output, started, inputArr } = this.state;
     console.log("INPUT:", input);
     console.log("OUTPUT:", output);
-    console.log("LASTCLICKED:", inputArr[inputArr.length - 1]);
-    console.log(inputArr.length);
+
     return (
       <div id="wrapper">
         <Display input={input} output={output} started={started} />
