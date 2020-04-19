@@ -126,7 +126,7 @@ class App extends React.Component {
     const { input, output, inputArr, started } = this.state;
 
     if (
-      operators.includes(inputArr[inputArr.length - 1]) &&
+      operators.slice(1).includes(inputArr[inputArr.length - 1]) &&
       operators.includes(input)
     ) {
       console.error("double");
@@ -186,9 +186,9 @@ class Display extends React.Component {
   render() {
     const { started, input, output } = this.props;
     return (
-      <div id="display">
+      <div id="container-display">
         <div id="display-sm">{started ? output : ""}</div>
-        <div id="display-lg">{started ? input : 0}</div>
+        <div id="display">{started ? input : 0}</div>
       </div>
     );
   }
