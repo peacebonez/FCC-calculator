@@ -50,9 +50,7 @@ class App extends React.Component {
     } else if (operators.includes(e.target.innerText)) {
       let operator = button;
       if (inputArr.includes("=")) {
-        this.setState((prevState) => ({
-          output: prevState.input + input,
-        }));
+        this.setState({ output: input });
       }
       this.handleOperator(operator);
     }
@@ -132,7 +130,12 @@ class App extends React.Component {
       operators.includes(input)
     ) {
       console.error("double");
-      this.setState({ output, input });
+      // this.setState({ output, input });;
+      console.log("OUTPUT:", output);
+      this.setState({
+        input: operator,
+        output: output.split("").shift() + operator,
+      });
       return;
     }
     if (!started) {
